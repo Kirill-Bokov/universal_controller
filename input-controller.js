@@ -5,26 +5,36 @@ export class InputController {
     static ACTION_DEACTIVATED = "input-controller:action-deactivated";
 
     constructor(actionsToBind = {}, target = window) {
+        console.log(actionsToBind)
         this.enabled = true;
         this.focused = true;
         this.target = target;
         this.activeActions = new Set()
-        this.actionsSource = new Map()
         this.actions = new Map()
-        this.bindActions(actions)
+        this.bindActions(actionsToBind)
         this.attach(target)
     }
 
     bindActions(actionsToBind) {
-        for (let actionName in actionsToBind) {
-            this.actions.set(actionName, { keys: actionsToBind[actionName], enabled: true })
+        const action = actionsToBind[actionName]
+        this.actions.set(actionName, {
+            keys: action.keys,
+            enabled: action.enabled ?? true
+        })
+    }
+
+    disableAction() {
+        const action = this.actions.get(actionName)
+        if (action) {
+            action.enabled = false
         }
     }
-
-    disableAction(actionName) {
-        this.actionName.enabled = false;
+    enableAction() {
+        const action = this.actions.get(actionName)
+        if (action) {
+            action.disabled = true
+        }
     }
-
     attach(target = this.target) {
         if (this.focused) {
             this.target.addEventListener('keydown', this.keyDown)
@@ -53,12 +63,20 @@ export class InputController {
         }
         return false
     }
-    isKeyPressed(keyCode) {
+    /*isKeyPressed(keyCode) {
         if (this.keys.has(keyCode)) {
             console.log(keyCode, "нажат")
         }
         return this.keys.has(keyCode)
+    }*/
+    keyDown = (event) => {
+        const key = event.keyCode
+        console.log(key, "Нажата клавиша")
     }
 
+    keyUp = (event) => {
+        const key = event.keyCode
+        console.log(key, "Отжата клавиша")
+    }
 
 }
