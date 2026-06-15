@@ -1,50 +1,64 @@
 export class InputController {
     enabled;
     focused;
-    ACTION_ACTIVATED;
-    ACTION_DEACTIVATED;
-    constructor(actionsToBind, target) {
-        this.actionsToBind = actionsToBind;
+    static ACTION_ACTIVATED = "input-controller:action-activated";
+    static ACTION_DEACTIVATED = "input-controller:action-deactivated";
+
+    constructor(actionsToBind = {}, target = window) {
+        this.enabled = true;
+        this.focused = true;
         this.target = target;
-        this.keys = new Set()
-        target.addEventListener("keydown", event =>
-            this.keys.add(event.code)
-        )
-        target.addEventListener("keyup", event =>
-            this.keys.remove(event.code)
-        )
-        this.activeActions = new Map()
-
+        this.activeActions = new Set()
+        this.actionsSource = new Map()
+        this.actions = new Map()
+        this.bindActions(actions)
+        this.attach(target)
     }
+
     bindActions(actionsToBind) {
-        this.activeActions.push(
-            actionsToBind
-        )
-    }
-
-    enableAction(actionName) {
-
-        if (this.enabled) {
-            return this.isActionActive()
+        for (let actionName in actionsToBind) {
+            this.actions.set(actionName, { keys: actionsToBind[actionName], enabled: true })
         }
-        this.actionName.enabled = true;
-
     }
+
     disableAction(actionName) {
         this.actionName.enabled = false;
     }
 
-    attach(target, dontEnable) {
-
+    attach(target = this.target) {
+        if (this.focused) {
+            this.target.addEventListener('keydown', this.keyDown)
+            this.target.addEventListener('keyup', this.keyUp)
+        }
     }
+
     detach() {
-
+        if (this.focused) {
+            this.target.removeEventListener('keydown', this.keyDown)
+            this.target.removeEventListener('keyup', this.keyUp)
+        }
     }
-    isActionActive(action) {
 
+    focus() {
+        this.focused = true;
+    }
+
+    unfocus() {
+        this.focused = false;
+    }
+
+    isActionActive(action) {
+        if (this.activeActions.has(action)) {
+            return true
+        }
+        return false
     }
     isKeyPressed(keyCode) {
-        if (this.keys.has(keyCode)) { console.log(keyCode, "") }
+        if (this.keys.has(keyCode)) {
+            console.log(keyCode, "нажат")
+        }
         return this.keys.has(keyCode)
     }
+
+
 }
