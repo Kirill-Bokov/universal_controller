@@ -1,7 +1,5 @@
-import { InputController } from "./input-controller"
-
 function inputControllerTest() {
-    actionsToBind = {
+    const  actionsToBind = {
         "left": {
             keys: [37, 65],
             enabled: false
@@ -15,3 +13,4 @@ function inputControllerTest() {
     let controller = new InputController(actionsToBind)
 
 }
+inputControllerTest()
