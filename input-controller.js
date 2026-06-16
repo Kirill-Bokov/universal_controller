@@ -9,6 +9,7 @@ class InputController {
         this.enabled = true;
         this.focused = true;
         this.target = target;
+        this.enabledActions = new Set();
         this.activeActions = new Set();
         this.actions = new Map();
         this.pressedKeys = new Set();
@@ -26,7 +27,7 @@ class InputController {
         for (let value of this.actions) {
             console.log(value)
             if (value[1].enabled == true) {
-                this.activeActions.add(value[0])
+                this.enabledActions.add(value[0])
             }
         }
 
@@ -38,7 +39,7 @@ class InputController {
         const action = this.actions.get(actionName)
         if (action) {
             this.actions.action.enabled = false
-            this.activeActions.delete(actionName)
+            this.enabledActions.delete(actionName)
         }
         console.log("метод disableAction вызван")
     }
@@ -47,7 +48,7 @@ class InputController {
         const action = this.actions.get(actionName)
         if (action) {
             this.actions.action.enabled = true
-            this.activeActions.add(actionName)
+            this.enabledActions.add(actionName)
         }
         console.log("метод enableAction вызван")
     }
@@ -68,7 +69,7 @@ class InputController {
             this.target.removeEventListener('keyup', this.keyUp)
             this.enabled = false
             this.pressedKeys.clear()
-            this.activeActions.clear()
+            this.enabledActions.clear()
         }
         console.log("метод detach вызван")
     }
@@ -82,7 +83,7 @@ class InputController {
     unfocus() {
         this.focused = false;
         this.pressedKeys.clear()
-        this.activeActions.clear()
+        this.enabledActions.clear()
         console.log("метод unfocus вызван")
     }
 
@@ -108,7 +109,7 @@ class InputController {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode) {
                     let actionName = value[0]
-                    if (this.activeActions.has(actionName)) {
+                    if (this.enabledActions.has(actionName)) {
                         return actionName
                     }
                 }
@@ -120,25 +121,29 @@ class InputController {
     keyDown = (event) => {
         let downedKey = event.keyCode
         let keyDownActionName = this.keyToActionName(downedKey)
-        console.log(this.pressedKeys)
         if (keyDownActionName && !this.pressedKeys.has(downedKey)) {
             this.pressedKeys.add(downedKey)
+            this.activeActions.add(keyDownActionName)
             console.log(InputController.ACTION_ACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
                 detail: keyDownActionName
             }))
-            
+
         }
     }
 
     keyUp = (event) => {
         let upedKey = event.keyCode
         let keyUpActionName = this.keyToActionName(upedKey)
-        this.pressedKeys.delete(upedKey)
-        console.log(InputController.ACTION_DEACTIVATED)
-        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-            detail: keyUpActionName
-        }))
+        if (keyUpActionName) {
+            this.pressedKeys.delete(upedKey)
+            this.activeActions.delete(keyUpActionName)
+            console.log(InputController.ACTION_DEACTIVATED)
+            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+                detail: keyUpActionName
+            }))
+        }
+
     }
 
 }
