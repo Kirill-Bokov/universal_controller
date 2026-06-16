@@ -27,7 +27,7 @@ function inputControllerTest() {
         InputController.ACTION_ACTIVATED, (event) => {
             console.log("ДЕТАЛИ ИВЕНТА",event.detail)
             if (event.detail == "jump") {
-                game.style.backgroundColor = "red"
+                game.style.backgroundColor = "darkSlateBlue"
             }
         }
     )
