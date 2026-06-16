@@ -12,14 +12,8 @@ function inputControllerTest() {
     }
 
 
-    let controller = new InputController(actionsToBind)
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            controller.blur()
-        } else {
-            controller.focus()
-        }
-    });
+    let controller = new InputController(actionsToBind);
+    window.controller = controller;
 
     const game = document.getElementById('game')
     console.log("ЭКШАН АКТИВЕЙТЕД",InputController.ACTION_ACTIVATED)

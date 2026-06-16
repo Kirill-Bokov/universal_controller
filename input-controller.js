@@ -17,24 +17,28 @@ class InputController {
         this.keyUp = this.keyUp.bind(this)
         this.bindActions(actionsToBind)
         this.attach()
-        
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.blur()
+            } else {
+                this.focus()
+            }
+        });
+
         console.log("Конце инициализации класса")
     }
     activate() {
         console.log("контроллер активирован")
         this.enabled = true
         if (this.attached) {
-            this.target.addEventListener('keydown', this.keyDown)
-            this.target.addEventListener('keyup', this.keyUp)
+            this.restoreStates()
         }
     }
     deactivate() {
         console.log("контроллер деактивирован")
         this.enabled = false
-        if (this.attached){
-            this.target.removeEventListener('keydown', this.keyDown)
-            this.target.removeEventListener('keyup', this.keyUp)
-            this.pressedKeys.clear()
+        if (this.attached) {
+            this.activeActions.clear()
         }
     }
     bindActions(actionsToBind) {
@@ -73,26 +77,43 @@ class InputController {
     }
 
     attach(target = this.target, dontEnable = false) {
-         console.log("метод attach вызван")
-         console.log(this.actions)
-        if (!dontEnable && this.enabled && this.focused) {
+        console.log("метод attach вызван")
+        console.log(this.actions)
+        if (!dontEnable && this.focused) {
             this.attached = true
             this.target.addEventListener('keydown', this.keyDown)
             this.target.addEventListener('keyup', this.keyUp)
-           
+
         }
 
     }
 
     detach() {
-         console.log("метод detach вызван")
-        if (this.enabled && this.focused) {
+        console.log("метод detach вызван")
+        if (this.focused) {
             this.attached = false
             this.target.removeEventListener('keydown', this.keyDown)
             this.target.removeEventListener('keyup', this.keyUp)
             this.pressedKeys.clear()
         }
-       
+
+    }
+
+    restoreStates() {
+        console.log(this.actions, this.pressedKeys)
+        for (let key of this.pressedKeys) {
+            for (let name of this.actions.keys()) {
+                console.log(name)
+                if (name == this.keyToActionName(key)) {
+                    this.activeActions.add(name)
+                    console.log("Восстановлено состояние", InputController.ACTION_ACTIVATED)
+                    this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+                        detail: name
+                    }))
+                }
+            }
+        }
+        console.log(this.activeActions)
     }
 
     focus() {
@@ -109,7 +130,7 @@ class InputController {
 
     isActionActive(action) {
         console.log("метод isActionActive вызван")
-        if (this.activeActions.has(action)) {
+        if (this.activeActions.has(action) && this.enabled) {
             return true
         }
 
@@ -142,7 +163,7 @@ class InputController {
         let downedKey = event.keyCode
         let keyDownActionName = this.keyToActionName(downedKey)
         this.pressedKeys.add(downedKey)
-        if (keyDownActionName && !this.activeActions.has(keyDownActionName)) {
+        if (keyDownActionName && !this.activeActions.has(keyDownActionName) && this.enabled) {
             console.log(this.pressedKeys)
             this.activeActions.add(keyDownActionName)
             console.log(InputController.ACTION_ACTIVATED)
@@ -158,14 +179,14 @@ class InputController {
         let keyUpActionName = this.keyToActionName(upedKey)
         console.log(this.pressedKeys)
         this.pressedKeys.delete(upedKey)
-        
+
         for (let key of this.pressedKeys) {
             console.log(key)
             if (this.keyToActionName(upedKey) == this.keyToActionName(key)) {
                 return
             }
         }
-        if (keyUpActionName) {
+        if (keyUpActionName && this.enabled) {
             this.activeActions.delete(keyUpActionName)
             console.log(InputController.ACTION_DEACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
@@ -174,9 +195,7 @@ class InputController {
         }
 
     }
-    activateController() {
 
-    }
 
 }
 
