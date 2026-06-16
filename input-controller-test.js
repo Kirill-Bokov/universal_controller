@@ -23,8 +23,9 @@ function inputControllerTest() {
 
     const game = document.getElementById('game')
     console.log("ЭКШАН АКТИВЕЙТЕД",InputController.ACTION_ACTIVATED)
-    game.addEventListener(
+    window.addEventListener(
         InputController.ACTION_ACTIVATED, (event) => {
+            console.log("ДЕТАЛИ ИВЕНТА",event.detail)
             if (event.detail == "jump") {
                 game.style.backgroundColor = "red"
             }
