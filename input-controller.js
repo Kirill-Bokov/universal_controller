@@ -18,10 +18,18 @@ class InputController {
     }
 
     bindActions(actionsToBind) {
-        for (const actionName in actionsToBind) {
+        for (let actionName in actionsToBind) {
             const action = actionsToBind[actionName]
             this.actions.set(actionName, { keys: action.keys, enabled: action.enabled ?? true })
         }
+
+        for (let value of this.actions) {
+            console.log(value)
+            if (value[1].enabled == true) {
+                this.activeActions.add(value[0])
+            }
+        }
+
         console.log("экшнс", this.actions)
         console.log("метод bindActions вызван")
     }
@@ -29,7 +37,8 @@ class InputController {
     disableAction(actionName) {
         const action = this.actions.get(actionName)
         if (action) {
-            action.enabled = false
+            this.actions.action.enabled = false
+            this.activeActions.delete(actionName)
         }
         console.log("метод disableAction вызван")
     }
@@ -37,7 +46,8 @@ class InputController {
     enableAction(actionName) {
         const action = this.actions.get(actionName)
         if (action) {
-            action.enabled = true
+            this.actions.action.enabled = true
+            this.activeActions.add(actionName)
         }
         console.log("метод enableAction вызван")
     }
@@ -77,75 +87,58 @@ class InputController {
     }
 
     isActionActive(action) {
+        console.log("метод isActionActive вызван")
         if (this.activeActions.has(action)) {
             return true
         }
-        console.log("метод isActionActive вызван")
+
         return false
 
     }
+
     isKeyPressed(keyCode) {
-        if (this.keys.has(keyCode)) {
-            console.log(keyCode, "нажат")
-        }
         console.log("метод isKeyPressed вызван")
-        return this.keys.has(keyCode)
-    }
-    keyToAction(keyCode) {
-        for (let value of this.actions) {
-            let key = keyCode
-            for (key in value[1].keys) {
-                if (value[1].keys[key] == keyCode) {
-                    console.log(value[1].keys[key], "эй там на корабле")
-                    let actionName = value[0]
-                    let actionValue = this.actions.get(actionName)
-                    console.log("экшнвелю",actionValue)
-                    let returnMap = {actionName, actionValue}
-                    console.log("ретюрнекшн", returnMap)
-                    return returnMap
-                }
-
-            }
-
+        if (this.pressedKeys.has(keyCode)) {
         }
+        return this.pressedKeys.has(keyCode)
+    }
 
+    keyToActionName(keyCode) {
+        for (let value of this.actions) {
+            for (let key in value[1].keys) {
+                if (value[1].keys[key] == keyCode) {
+                    let actionName = value[0]
+                    if (this.activeActions.has(actionName)) {
+                        return actionName
+                    }
+                }
+            }
+        }
+        return false
     }
 
     keyDown = (event) => {
-        let keyDownAction = this.keyToAction(event.keyCode)
-        console.log("кейдаунекшн",keyDownAction)
-        this.activeActions.add(keyDownAction)
-        console.log("эктивекшнс", this.activeActions)
-        if (keyDownAction && !this.actions.has(keyDownAction)) {
+        let downedKey = event.keyCode
+        let keyDownActionName = this.keyToActionName(downedKey)
+        console.log(this.pressedKeys)
+        if (keyDownActionName && !this.pressedKeys.has(downedKey)) {
+            this.pressedKeys.add(downedKey)
+            console.log(InputController.ACTION_ACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                detail: actionName
+                detail: keyDownActionName
             }))
+            
         }
-        for (let value of this.actions) {
-            console.log(value, "вэлью")
-            let key = inputKey
-            for (key in value[1].keys) {
-                if (value[1].keys[key] == inputKey) {
-                    console.log(value[1].keys[key], "эй там на корабле")
-                    let actionName = value[0]
-                    this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                        detail: actionName
-                    }))
-                    console.log(InputController.ACTION_ACTIVATED, "на ключе", inputKey)
-                }
-
-            }
-
-        }
-        console.log(this.actions)
-
-
-        console.log(inputKey, "Нажата клавиша")
     }
 
     keyUp = (event) => {
-        const key = event.keyCode
-        console.log(key, "Отжата клавиша")
+        let upedKey = event.keyCode
+        let keyUpActionName = this.keyToActionName(upedKey)
+        this.pressedKeys.delete(upedKey)
+        console.log(InputController.ACTION_DEACTIVATED)
+        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+            detail: keyUpActionName
+        }))
     }
 
 }
