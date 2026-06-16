@@ -13,8 +13,11 @@ class InputController {
         this.activeActions = new Set();
         this.actions = new Map();
         this.pressedKeys = new Set();
+        this.keyDown = this.keyDown.bind(this)
+        this.keyUp = this.keyUp.bind(this)
         this.bindActions(actionsToBind)
         this.attach()
+        
         console.log("Конце инициализации класса")
     }
     activate() {
@@ -135,11 +138,12 @@ class InputController {
         return false
     }
 
-    keyDown = (event) => {
+    keyDown(event) {
         let downedKey = event.keyCode
         let keyDownActionName = this.keyToActionName(downedKey)
-        if (keyDownActionName && !this.pressedKeys.has(downedKey)) {
-            this.pressedKeys.add(downedKey)
+        this.pressedKeys.add(downedKey)
+        if (keyDownActionName && !this.activeActions.has(keyDownActionName)) {
+            console.log(this.pressedKeys)
             this.activeActions.add(keyDownActionName)
             console.log(InputController.ACTION_ACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
@@ -149,11 +153,19 @@ class InputController {
         }
     }
 
-    keyUp = (event) => {
+    keyUp(event) {
         let upedKey = event.keyCode
         let keyUpActionName = this.keyToActionName(upedKey)
+        console.log(this.pressedKeys)
+        this.pressedKeys.delete(upedKey)
+        
+        for (let key of this.pressedKeys) {
+            console.log(key)
+            if (this.keyToActionName(upedKey) == this.keyToActionName(key)) {
+                return
+            }
+        }
         if (keyUpActionName) {
-            this.pressedKeys.delete(upedKey)
             this.activeActions.delete(keyUpActionName)
             console.log(InputController.ACTION_DEACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
