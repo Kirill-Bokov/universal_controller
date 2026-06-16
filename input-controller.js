@@ -17,7 +17,23 @@ class InputController {
         this.attach()
         console.log("Конце инициализации класса")
     }
-
+    activate() {
+        console.log("контроллер активирован")
+        this.enabled = true
+        if (this.attached) {
+            this.target.addEventListener('keydown', this.keyDown)
+            this.target.addEventListener('keyup', this.keyUp)
+        }
+    }
+    deactivate() {
+        console.log("контроллер деактивирован")
+        this.enabled = false
+        if (this.attached){
+            this.target.removeEventListener('keydown', this.keyDown)
+            this.target.removeEventListener('keyup', this.keyUp)
+            this.pressedKeys.clear()
+        }
+    }
     bindActions(actionsToBind) {
         for (let actionName in actionsToBind) {
             const action = actionsToBind[actionName]
@@ -54,24 +70,26 @@ class InputController {
     }
 
     attach(target = this.target, dontEnable = false) {
-        if (!dontEnable) {
+         console.log("метод attach вызван")
+         console.log(this.actions)
+        if (!dontEnable && this.enabled && this.focused) {
+            this.attached = true
             this.target.addEventListener('keydown', this.keyDown)
             this.target.addEventListener('keyup', this.keyUp)
-            this.enabled = true
-            console.log("метод attach вызван")
+           
         }
 
     }
 
     detach() {
-        if (this.focused) {
+         console.log("метод detach вызван")
+        if (this.enabled && this.focused) {
+            this.attached = false
             this.target.removeEventListener('keydown', this.keyDown)
             this.target.removeEventListener('keyup', this.keyUp)
-            this.enabled = false
             this.pressedKeys.clear()
-            this.enabledActions.clear()
         }
-        console.log("метод detach вызван")
+       
     }
 
     focus() {
@@ -80,11 +98,10 @@ class InputController {
     }
 
 
-    unfocus() {
+    blur() {
         this.focused = false;
         this.pressedKeys.clear()
-        this.enabledActions.clear()
-        console.log("метод unfocus вызван")
+        console.log("метод blur вызван")
     }
 
     isActionActive(action) {
@@ -143,6 +160,9 @@ class InputController {
                 detail: keyUpActionName
             }))
         }
+
+    }
+    activateController() {
 
     }
 
