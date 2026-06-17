@@ -8,11 +8,15 @@ function inputControllerTest() {
         },
         "right": {
             keys: [39, 68]
+        },
+        "mouse": {
+            mouseButtons: [0,1,2]
         }
     }
 
 
     let controller = new InputController(actionsToBind);
+    let mouse =  new MousePlugin(controller);
     window.controller = controller;
 
     const game = document.getElementById('game')

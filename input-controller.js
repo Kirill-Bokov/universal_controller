@@ -13,6 +13,9 @@ class InputController {
         this.activeActions = new Set();
         this.actions = new Map();
         this.pressedKeys = new Set();
+        this.activePlugins = new Set();
+        this.activePlugins.add("keyboard")
+        this.activePlugins.add("mouse")
         this.keyDown = this.keyDown.bind(this)
         this.keyUp = this.keyUp.bind(this)
         this.bindActions(actionsToBind)
@@ -58,6 +61,21 @@ class InputController {
         console.log("метод bindActions вызван")
     }
 
+    pluginOn(pluginName) {
+        console.log("метод addPlugin был вызван")
+        this.activePlugins.add(pluginName)
+    }
+
+    pluginOff(pluginName) {
+        console.log("метод removePlugin был вызван")
+        this.activePlugins.delete(pluginName)
+    }
+
+    isPluginOn(pluginName) {
+        console.log("подключённые плагины", this.activePlugins)
+        return this.activePlugins.has(pluginName)
+    }
+
     disableAction(actionName) {
         const action = this.actions.get(actionName)
         if (action) {
@@ -81,30 +99,43 @@ class InputController {
         console.log(this.actions)
         if (!dontEnable && this.focused) {
             this.attached = true
-            this.target.addEventListener('keydown', this.keyDown)
-            this.target.addEventListener('keyup', this.keyUp)
-
         }
-
+        if (this.activePlugins.has("keyboard")) {
+            this.keyboardOn()
+        }
     }
 
     detach() {
         console.log("метод detach вызван")
         if (this.focused) {
             this.attached = false
-            this.target.removeEventListener('keydown', this.keyDown)
-            this.target.removeEventListener('keyup', this.keyUp)
             this.pressedKeys.clear()
         }
-
     }
+
+    keyboardOn() {
+        console.log("подключена клавиатура")
+        this.pluginOn("keyboard")
+        this.target.addEventListener('keydown', this.keyDown)
+        this.target.addEventListener('keyup', this.keyUp)
+    }
+
+    keyboardOff() {
+        console.log("отключена клавиатура")
+        this.pluginOff("keyboard")
+        this.target.removeEventListener('keydown', this.keyDown)
+        this.target.removeEventListener('keyup', this.keyUp)
+        this.pressedKeys.clear()
+    }
+
+
 
     restoreStates() {
         console.log(this.actions, this.pressedKeys)
-        for (let key of this.pressedKeys) {
+        for (let keyCode of this.pressedKeys) {
             for (let name of this.actions.keys()) {
                 console.log(name)
-                if (name == this.keyToActionName(key)) {
+                if (name == this.keyCodeToActionName(keyCode)) {
                     this.activeActions.add(name)
                 }
             }
@@ -148,7 +179,7 @@ class InputController {
         return this.pressedKeys.has(keyCode)
     }
 
-    keyToActionName(keyCode) {
+    keyCodeToActionName(keyCode) {
         for (let value of this.actions) {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode) {
@@ -164,36 +195,45 @@ class InputController {
 
     keyDown(event) {
         let downedKey = event.keyCode
-        let keyDownActionName = this.keyToActionName(downedKey)
+        let keyDownActionName = this.keyCodeToActionName(downedKey)
         this.pressedKeys.add(downedKey)
         if (keyDownActionName && !this.activeActions.has(keyDownActionName) && this.enabled) {
             console.log(this.pressedKeys)
             this.activeActions.add(keyDownActionName)
-            console.log(InputController.ACTION_ACTIVATED)
-            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                detail: keyDownActionName
-            }))
-
+            this.callEvent(keyDownActionName, true)
         }
     }
 
     keyUp(event) {
         let upedKey = event.keyCode
-        let keyUpActionName = this.keyToActionName(upedKey)
+        let keyUpActionName = this.keyCodeToActionName(upedKey)
         console.log(this.pressedKeys)
         this.pressedKeys.delete(upedKey)
 
         for (let key of this.pressedKeys) {
             console.log(key)
-            if (this.keyToActionName(upedKey) == this.keyToActionName(key)) {
+            if (this.keyCodeToActionName(upedKey) == this.keyCodeToActionName(key)) {
                 return
             }
         }
+
         if (keyUpActionName && this.enabled) {
             this.activeActions.delete(keyUpActionName)
+            this.callEvent(keyUpActionName, false)
+        }
+    }
+
+    callEvent(eventName, activated = true) {
+        if (activated) {
+            console.log(InputController.ACTION_ACTIVATED)
+            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+                detail: eventName
+            }))
+
+        } else {
             console.log(InputController.ACTION_DEACTIVATED)
             this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-                detail: keyUpActionName
+                detail: eventName
             }))
         }
     }
