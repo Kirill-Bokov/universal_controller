@@ -7,7 +7,7 @@ function inputControllerTest() {
             enabled: false
         },
         "right": {
-            keys: [39, 68]
+            keys: [39, 38, 68]
         }
     }
 
@@ -16,7 +16,6 @@ function inputControllerTest() {
     window.controller = controller;
 
     const game = document.getElementById('game')
-    console.log("ЭКШАН АКТИВЕЙТЕД",InputController.ACTION_ACTIVATED)
     window.addEventListener(
         InputController.ACTION_ACTIVATED, (event) => {
             console.log("ДЕТАЛИ ИВЕНТА",event.detail)

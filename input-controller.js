@@ -106,14 +106,17 @@ class InputController {
                 console.log(name)
                 if (name == this.keyToActionName(key)) {
                     this.activeActions.add(name)
-                    console.log("Восстановлено состояние", InputController.ACTION_ACTIVATED)
-                    this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                        detail: name
-                    }))
                 }
             }
         }
         console.log(this.activeActions)
+
+        for (let action of this.activeActions) {
+            console.log("Восстановлено состояние", InputController.ACTION_ACTIVATED)
+            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+                detail: action
+            }))
+        }
     }
 
     focus() {
