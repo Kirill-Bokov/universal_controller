@@ -7,7 +7,7 @@ function inputControllerTest() {
             enabled: false
         },
         "right": {
-            keys: [39, 38, 68]
+            keys: [39, 68]
         }
     }
 
@@ -18,7 +18,6 @@ function inputControllerTest() {
     const game = document.getElementById('game')
     window.addEventListener(
         InputController.ACTION_ACTIVATED, (event) => {
-            console.log("ДЕТАЛИ ИВЕНТА",event.detail)
             if (event.detail == "jump") {
                 game.style.backgroundColor = "darkSlateBlue"
             }
@@ -50,7 +49,5 @@ function inputControllerTest() {
         },
     })
     });
-
-
 }
 inputControllerTest()

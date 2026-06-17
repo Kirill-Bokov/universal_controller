@@ -196,10 +196,7 @@ class InputController {
                 detail: keyUpActionName
             }))
         }
-
     }
-
-
 }
 
 window.InputController = InputController;
