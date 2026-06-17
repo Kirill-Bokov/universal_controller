@@ -42,7 +42,14 @@ class InputController {
             this.activeActions.clear()
         }
     }
+
     bindActions(actionsToBind) {
+        let a = Object.fromEntries(this.actions);
+        console.log(actionsToBind)
+        let b = structuredClone(actionsToBind);
+        let merged = { ...a, ...b }
+        mergedmap = new Map (merged)
+        console.log(mergedmap)
         for (let actionName in actionsToBind) {
             const action = actionsToBind[actionName]
             this.actions.set(actionName, { keys: action.keys, enabled: action.enabled ?? true })
@@ -54,7 +61,8 @@ class InputController {
                 this.enabledActions.add(value[0])
             }
         }
-
+        
+        console.log(obj)
         console.log("экшнс", this.actions)
         console.log("метод bindActions вызван")
     }
@@ -150,14 +158,8 @@ class InputController {
 
     }
 
-    isKeyPressed(keyCode) {
-        console.log("метод isKeyPressed вызван")
-        if (this.pressedKeys.has(keyCode)) {
-        }
-        return this.pressedKeys.has(keyCode)
-    }
 
-    keyCodeToActionName(keyCode) {
+    keyCodeToActionName(keyCode) {//Переделать в value to action
         for (let value of this.actions) {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode) {
@@ -171,9 +173,8 @@ class InputController {
         return false
     }
 
-    keyDown(keyCode) {
+    keyDown(keyCode) {//УБРАТЬ
         let downedKey = keyCode
-        console.log("нажата клавиша", downedKey)
         let keyDownActionName = this.keyCodeToActionName(downedKey)
         this.pressedKeys.add(downedKey)
         if (keyDownActionName && !this.activeActions.has(keyDownActionName) && this.enabled) {
@@ -183,7 +184,7 @@ class InputController {
         }
     }
 
-    keyUp(keyCode) {
+    keyUp(keyCode) {//УБРАТЬ
         let upedKey = keyCode
         let keyUpActionName = this.keyCodeToActionName(upedKey)
         console.log(this.pressedKeys)
