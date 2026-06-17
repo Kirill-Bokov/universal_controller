@@ -9,14 +9,21 @@ function inputControllerTest() {
         "right": {
             keys: [39, 68]
         },
-        "mouse": {
-            mouseButtons: [0,1,2]
+        "shoot": {
+            keys: [0]
+        },
+        "scope": {
+            keys: [2]
         }
     }
 
 
-    let controller = new InputController(actionsToBind);
+    const controller = new InputController(actionsToBind);
     let mouse =  new MousePlugin(controller);
+    mouse.mouseOn()
+    let keyboard = new KeyboardPlugin(controller);
+    keyboard.keyboardOn()
+    
     window.controller = controller;
 
     const game = document.getElementById('game')
