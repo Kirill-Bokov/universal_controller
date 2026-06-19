@@ -4,10 +4,11 @@ function inputControllerTest() {
     const actionsToBind = {
         "left": {
             keys: [37, 65],
-            enabled: false
+            enabled: true
         },
         "right": {
-            keys: [39, 68]
+            keys: [39, 68],
+            enabled: true
         },
         "shoot": {
             keys: [0]
@@ -19,8 +20,8 @@ function inputControllerTest() {
 
 
     const controller = new InputController(actionsToBind);
-    let mouse =  new MousePlugin(controller);
-    mouse.mouseOn()
+    //let mouse =  new MousePlugin(controller);
+    //mouse.mouseOn()
     let keyboard = new KeyboardPlugin(controller);
     keyboard.keyboardOn()
     

@@ -14,6 +14,7 @@ class InputController {
         this.activePlugins = new Set();
         this.actionsToRestore = new Set();
         this.bindActions(actionsToBind)
+        console.log(this.activeActions)
         this.attach()
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
@@ -74,6 +75,7 @@ class InputController {
     pluginOn(pluginName) {
         console.log("метод addPlugin был вызван")
         this.activePlugins.add(pluginName)
+        console.log(this.activePlugins)
     }
 
     pluginOff(pluginName) {
@@ -162,31 +164,31 @@ class InputController {
 
     }
 
-    activateAction(actionName, activated = true) {
+    activateAction(actionName) {
         if (this.enabled) {
-            if (activated) {
-                this.activeActions.add(actionName)
-                console.log(InputController.ACTION_ACTIVATED, actionName)
-                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                    detail: actionName
-                }))
+            this.activeActions.add(actionName)
+            console.log(InputController.ACTION_ACTIVATED, actionName)
+            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+                detail: actionName
+            }))
 
-            } else {
-                console.log(InputController.ACTION_DEACTIVATED, actionName)
-                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-                    detail: actionName
-                }))
-            }
         } else {
             console.log("Контроллер выключен", actionName)
-            if (activated) {
-                this.actionsToRestore.add(actionName)
-            }
-            else {
-                this.actionsToRestore.remove(actionName)
-            }
+            this.actionsToRestore.add(actionName)
         }
+    }
+    deactivateAction(actionName) {
+        if (this.enabled) {
+            this.activeActions.delete(actionName)
+            console.log(InputController.ACTION_DEACTIVATED, actionName)
+                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+                    detail: actionName
+            }))
 
+        } else {
+            console.log("Контроллер выключен", actionName)
+            this.actionsToRestore.delete(actionName)
+        }
     }
 }
 

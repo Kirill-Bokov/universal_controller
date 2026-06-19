@@ -1,8 +1,9 @@
 class KeyboardPlugin {
     constructor(controller, target = window) {
         this.controller = controller
-        //this.mouseDown = this.mouseDown.bind(this)
-        //this.mouseUp = this.mouseUp.bind(this)
+        console.log(this.controller.activeActions, "при инициализации клавы")
+        this.keyDown = this.keyDown.bind(this)
+        this.keyUp = this.keyUp.bind(this)
         this.pressedKeys = new Set()
         this.target = target
     }
@@ -30,35 +31,29 @@ class KeyboardPlugin {
         for (let value of this.controller.actions) {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode && value[1].enabled == true) {
-                    console.log("нет такого разблокированного кода")
                         return value[0]
                 }
             }
         }
+        console.log("нет такого разблокированного кода")
         return false
     }
 
 
     keyDown(event) {
-        let keyCode = event.keyCode
-        console.log(keyCode)
-        console.log(this.keyCodeToActionName(keyCode))
-        let actionName = this.keyCodeToActionName(keyCode)
-        if (actionName) {
+        console.log(this.controller.activeActions, "actionName-keydown")
+        let actionName = this.keyCodeToActionName(event.keyCode)
+        
+        if (actionName && !this.controller.activeActions.has(actionName) && !this.pressedKeys.has(event.keyCode)) {
+            this.pressedKeys.add(event.keyCode)
             this.controller.activateAction(actionName)
         }
-        
-
     }
     keyUp(event) {
         let actionName = this.keyCodeToActionName(event.keyCode)
-        if (actionName) {
-            this.controller.activateAction(actionName, activate = false)
+        if (actionName && !this.pressedKeys.has(event.keyCode)) {
+            this.pressedKeys.delete(event.keyCode)
+            this.controller.deactivateAction(actionName)
         }
-    }
-
-    isKeyPressed(keyCode) {
-        console.log("метод isKeyPressed вызван")
-        return this.pressedKeys.has(keyCode)
     }
 }
