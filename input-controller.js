@@ -36,12 +36,16 @@ class InputController {
     deactivate() {
         console.log("контроллер деактивирован")
         this.enabled = false
-            for (let action of this.activeActions) {
-                this.actionsToRestore.add(action)
-            }
-            this.activeActions.clear()
+        for (let action of this.activeActions) {
+            this.actionsToRestore.add(action)
+        }
+        this.activeActions.clear()
     }
 
+    isObject(item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+    
     deepMerge(target, source) {
         const output = { ...target };
         if (this.isObject(target) && this.isObject(source)) {
@@ -60,11 +64,6 @@ class InputController {
 
         return output;
     }
-
-    isObject(item) {
-        return (item && typeof item === 'object' && !Array.isArray(item));
-    }
-
 
     bindActions(actionsToBind) {
         console.log("метод bindActions вызван")
@@ -184,8 +183,8 @@ class InputController {
         if (this.enabled) {
             this.activeActions.delete(actionName)
             console.log(InputController.ACTION_DEACTIVATED, actionName)
-                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-                    detail: actionName
+            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+                detail: actionName
             }))
 
         } else {

@@ -11,17 +11,18 @@ function inputControllerTest() {
             enabled: true
         },
         "shoot": {
-            keys: [0]
+            mouseKeys: [0, 1],
+            enabled: true
         },
         "scope": {
-            keys: [2]
+            mouseKeys: [2]
         }
     }
 
 
     const controller = new InputController(actionsToBind);
-    //let mouse =  new MousePlugin(controller);
-    //mouse.mouseOn()
+    let mouse =  new MousePlugin(controller);
+    mouse.mouseOn()
     let keyboard = new KeyboardPlugin(controller);
     keyboard.keyboardOn()
     
