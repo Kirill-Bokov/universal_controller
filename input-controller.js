@@ -9,13 +9,10 @@ class InputController {
         this.enabled = true;
         this.focused = true;
         this.target = target;
-        this.enabledActions = new Set();
         this.activeActions = new Set();
         this.actions = new Map();
-        this.pressedKeys = new Set();
         this.activePlugins = new Set();
-        this.keyDown = this.keyDown.bind(this)
-        this.keyUp = this.keyUp.bind(this)
+        this.actionsToRestore = new Set();
         this.bindActions(actionsToBind)
         this.attach()
         document.addEventListener('visibilitychange', () => {
@@ -28,12 +25,11 @@ class InputController {
 
         console.log("Конце инициализации класса")
     }
+
     activate() {
         console.log("контроллер активирован")
         this.enabled = true
-        if (this.attached) {
-            this.restoreStates()
-        }
+        this.restoreStates()
     }
     deactivate() {
         console.log("контроллер деактивирован")
@@ -43,28 +39,36 @@ class InputController {
         }
     }
 
-    bindActions(actionsToBind) {
-        let a = Object.fromEntries(this.actions);
-        console.log(actionsToBind)
-        let b = structuredClone(actionsToBind);
-        let merged = { ...a, ...b }
-        mergedmap = new Map (merged)
-        console.log(mergedmap)
-        for (let actionName in actionsToBind) {
-            const action = actionsToBind[actionName]
-            this.actions.set(actionName, { keys: action.keys, enabled: action.enabled ?? true })
+    deepMerge(target, source) {
+        const output = { ...target };
+        if (this.isObject(target) && this.isObject(source)) {
+            Object.keys(source).forEach(key => {
+                if (this.isObject(source[key])) {
+                    if (!(key in target)) {
+                        Object.assign(output, { [key]: source[key] });
+                    } else {
+                        output[key] = this.deepMerge(target[key], source[key]);
+                    }
+                } else {
+                    Object.assign(output, { [key]: source[key] });
+                }
+            });
         }
 
-        for (let value of this.actions) {
-            console.log(value)
-            if (value[1].enabled == true) {
-                this.enabledActions.add(value[0])
-            }
-        }
-        
-        console.log(obj)
-        console.log("экшнс", this.actions)
+        return output;
+    }
+
+    isObject(item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+
+
+    bindActions(actionsToBind) {
         console.log("метод bindActions вызван")
+        let actionsObject = Object.fromEntries(this.actions);
+        let merged = this.deepMerge(actionsObject, actionsToBind)
+        this.actions = new Map(Object.entries(merged))
+        console.log("экшнс", this.actions)
     }
 
     pluginOn(pluginName) {
@@ -83,26 +87,32 @@ class InputController {
     }
 
     disableAction(actionName) {
-        const action = this.actions.get(actionName)
-        if (action) {
-            this.actions.action.enabled = false
-            this.enabledActions.delete(actionName)
-        }
         console.log("метод disableAction вызван")
+        for (let key of this.actions.keys()) {
+            if (key == actionName) {
+                this.actions.get(key).enabled = false
+                if (this.activeActions.has(key)) {
+                    this.actions.get(key).enabled = false
+                }
+            }
+        }
+
     }
 
     enableAction(actionName) {
-        const action = this.actions.get(actionName)
-        if (action) {
-            this.actions.action.enabled = true
-            this.enabledActions.add(actionName)
-        }
         console.log("метод enableAction вызван")
+        for (let key of this.actions.keys()) {
+            if (key == actionName) {
+                this.actions.get(key).enabled = true
+                if (this.activeActions.has(key)) {
+                    this.actions.get(key).enabled = true
+                }
+            }
+        }
     }
 
     attach(target = this.target, dontEnable = false) {
         console.log("метод attach вызван")
-        console.log(this.actions)
         if (!dontEnable && this.focused) {
             this.attached = true
         }
@@ -117,23 +127,18 @@ class InputController {
     }
 
     restoreStates() {
-        console.log(this.actions, this.pressedKeys)
-        for (let keyCode of this.pressedKeys) {
-            for (let name of this.actions.keys()) {
-                console.log(name)
-                if (name == this.keyCodeToActionName(keyCode)) {
-                    this.activeActions.add(name)
-                }
-            }
+        for (action of this.actionsToRestore) {
+            this.restoreState(action)
+            this.actionsToRestore.delete(action)
         }
-        console.log(this.activeActions)
+    }
 
-        for (let action of this.activeActions) {
-            console.log("Восстановлено состояние", InputController.ACTION_ACTIVATED)
-            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                detail: action
-            }))
-        }
+    restoreState(actionToRestoreName) {
+        console.log("Восстановлено состояние", this.actionToRestoreName)
+        this.activeActions.add(actionToRestoreName)
+        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+            detail: actionToRestoreName
+        }))
     }
 
     focus() {
@@ -144,7 +149,6 @@ class InputController {
 
     blur() {
         this.focused = false;
-        this.pressedKeys.clear()
         console.log("метод blur вызван")
     }
 
@@ -158,63 +162,31 @@ class InputController {
 
     }
 
+    activateAction(actionName, activated = true) {
+        if (this.enabled) {
+            if (activated) {
+                this.activeActions.add(actionName)
+                console.log(InputController.ACTION_ACTIVATED, actionName)
+                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+                    detail: actionName
+                }))
 
-    keyCodeToActionName(keyCode) {//Переделать в value to action
-        for (let value of this.actions) {
-            for (let key in value[1].keys) {
-                if (value[1].keys[key] == keyCode) {
-                    let actionName = value[0]
-                    if (this.enabledActions.has(actionName)) {
-                        return actionName
-                    }
-                }
+            } else {
+                console.log(InputController.ACTION_DEACTIVATED, actionName)
+                this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+                    detail: actionName
+                }))
             }
-        }
-        return false
-    }
-
-    keyDown(keyCode) {//УБРАТЬ
-        let downedKey = keyCode
-        let keyDownActionName = this.keyCodeToActionName(downedKey)
-        this.pressedKeys.add(downedKey)
-        if (keyDownActionName && !this.activeActions.has(keyDownActionName) && this.enabled) {
-            console.log(this.pressedKeys)
-            this.activeActions.add(keyDownActionName)
-            this.callEvent(keyDownActionName, true)
-        }
-    }
-
-    keyUp(keyCode) {//УБРАТЬ
-        let upedKey = keyCode
-        let keyUpActionName = this.keyCodeToActionName(upedKey)
-        console.log(this.pressedKeys)
-        this.pressedKeys.delete(upedKey)
-        for (let key of this.pressedKeys) {
-            console.log(key)
-            if (this.keyCodeToActionName(upedKey) == this.keyCodeToActionName(key)) {
-                return
-            }
-        }
-
-        if (keyUpActionName && this.enabled) {
-            this.activeActions.delete(keyUpActionName)
-            this.callEvent(keyUpActionName, false)
-        }
-    }
-
-    callEvent(eventName, activated = true) {
-        if (activated) {
-            console.log(InputController.ACTION_ACTIVATED, eventName)
-            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-                detail: eventName
-            }))
-
         } else {
-            console.log(InputController.ACTION_DEACTIVATED, eventName)
-            this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-                detail: eventName
-            }))
+            console.log("Контроллер выключен", actionName)
+            if (activated) {
+                this.actionsToRestore.add(actionName)
+            }
+            else {
+                this.actionsToRestore.remove(actionName)
+            }
         }
+
     }
 }
 
