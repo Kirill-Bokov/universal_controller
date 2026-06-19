@@ -3,7 +3,7 @@
 function inputControllerTest() {
     const actionsToBind = {
         "left": {
-            keys: [37, 65],
+            keys: [37, 38, 65],
             enabled: true
         },
         "right": {

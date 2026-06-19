@@ -8,6 +8,7 @@ class InputController {
         console.log("Инициализация класса")
         this.enabled = true;
         this.focused = true;
+        this.attached = false;
         this.target = target;
         this.activeActions = new Set();
         this.actions = new Map();
@@ -35,9 +36,10 @@ class InputController {
     deactivate() {
         console.log("контроллер деактивирован")
         this.enabled = false
-        if (this.attached) {
+            for (let action of this.activeActions) {
+                this.actionsToRestore.add(action)
+            }
             this.activeActions.clear()
-        }
     }
 
     deepMerge(target, source) {
@@ -117,6 +119,7 @@ class InputController {
         console.log("метод attach вызван")
         if (!dontEnable && this.focused) {
             this.attached = true
+            this.target = target
         }
     }
 
@@ -124,19 +127,19 @@ class InputController {
         console.log("метод detach вызван")
         if (this.focused) {
             this.attached = false
-            this.pressedKeys.clear()
         }
     }
 
     restoreStates() {
-        for (action of this.actionsToRestore) {
+        for (let action of this.actionsToRestore) {
+            console.log(action, this.actionsToRestore)
             this.restoreState(action)
             this.actionsToRestore.delete(action)
         }
     }
 
     restoreState(actionToRestoreName) {
-        console.log("Восстановлено состояние", this.actionToRestoreName)
+        console.log("Восстановлено состояние", actionToRestoreName, InputController.ACTION_ACTIVATED)
         this.activeActions.add(actionToRestoreName)
         this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
             detail: actionToRestoreName
