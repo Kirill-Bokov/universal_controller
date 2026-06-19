@@ -1,17 +1,19 @@
 class KeyboardPlugin {
-    constructor(controller) {
-        this.controller = controller
-        console.log(this.controller.activeActions, "при инициализации клавы")
+    constructor(api) {
+        this.api = api
+        console.log(this.api, "при инициализации клавы")
         this.keyDown = this.keyDown.bind(this)
         this.keyUp = this.keyUp.bind(this)
         this.pressedKeys = new Set()
-        this.target = this.controller.target
+        this.target = this.api.target
+
     }
 
     keyboardOn() {
         console.log("подключение клавиатуры")
-        if (this.controller.attached) {
-            this.controller.pluginOn("keyboard")
+
+        if (this.api.attached) {
+            this.target.dispatchEvent(new CustomEvent('keyboardon'))
             this.target.addEventListener('keydown', this.keyDown)
             this.target.addEventListener('keyup', this.keyUp)
         } else {
@@ -20,18 +22,18 @@ class KeyboardPlugin {
     }
 
     keyboardOff() {
-        console.log("отключение клавиатуры")
+        this.target.dispatchEvent(new CustomEvent('keyboardoff'))
         this.target.removeEventListener('keydown', this.keyDown)
         this.target.removeEventListener('keyup', this.keyUp)
         for (let key in this.pressedKeys) {
             this.keyDown(key)
         }
         this.pressedKeys.clear()
-        this.controller.pluginOff("keyboard")
     }
 
     keyCodeToActionName(keyCode) {
-        for (let value of this.controller.actions) {
+        console.log(this.api.actions)
+        for (let value of this.api.actions) {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode && value[1].enabled == true) {
                     let actionName = value[0]
@@ -63,8 +65,8 @@ class KeyboardPlugin {
         }
         let actionName = this.keyCodeToActionName(event.keyCode)
         this.pressedKeys.add(event.keyCode)
-        if (actionName && !this.controller.activeActions.has(actionName)) {
-            this.controller.activateAction(actionName)
+        if (actionName && !this.api.activeActions.has(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('activateAction'), { detail: actionName })
         }
     }
 
@@ -76,8 +78,10 @@ class KeyboardPlugin {
 
         let actionName = this.keyCodeToActionName(event.keyCode)
         this.pressedKeys.delete(event.keyCode)
-        if (actionName && this.controller.activeActions.has(actionName)) {
-            this.controller.deactivateAction(actionName)
+        if (actionName && this.api.activeActions.has(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('deactivateAction'), {
+                detail: actionName
+            })
         }
     }
 }

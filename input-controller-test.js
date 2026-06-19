@@ -21,9 +21,9 @@ function inputControllerTest() {
 
 
     const controller = new InputController(actionsToBind);
-    let mouse =  new MousePlugin(controller);
-    mouse.mouseOn()
-    let keyboard = new KeyboardPlugin(controller);
+    //let mouse =  new MousePlugin(controller.getApi());
+   // mouse.mouseOn()
+    let keyboard = new KeyboardPlugin(controller.getApi());
     keyboard.keyboardOn()
     
     window.controller = controller;

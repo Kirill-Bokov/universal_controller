@@ -15,8 +15,26 @@ class InputController {
         this.activePlugins = new Set();
         this.actionsToRestore = new Set();
         this.bindActions(actionsToBind)
-        console.log(this.activeActions)
+        this.initListeners()
         this.attach()
+        
+        
+
+        console.log("Конце инициализации класса")
+    }
+    getApi() {
+        let activeActions = structuredClone(this.activeActions)
+        let actions = structuredClone(this.actions)
+        console.log("апи", activeActions, actions)
+        return {
+            actions: actions,
+            activeActions: activeActions,
+            target: this.target,
+            attached: this.attached
+        }
+    }
+
+    initListeners() {
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 this.blur()
@@ -24,8 +42,28 @@ class InputController {
                 this.focus()
             }
         });
-
-        console.log("Конце инициализации класса")
+        this.target.addEventListener('keyboardon', () => {
+            this.pluginOn('keyboard')
+        });
+        this.target.addEventListener('keyboardoff', () => {
+            this.pluginOff('keyboard')
+        })
+        this.target.addEventListener('mouseon', () => {
+            this.pluginOn('mouse')
+        });
+        this.target.addEventListener('mouseoff', () => {
+            this.pluginOff('mouse')
+        })
+        this.target.addEventListener('activateAction', (event) => {
+            console.log(event
+            )
+            const detail = event.detail
+            this.activateAction(detail)
+        });
+        this.target.addEventListener('deactivateAction', (e) => {
+            const detail = e.detail
+            this.deactivateAction(detail)
+        })
     }
 
     activate() {
@@ -45,7 +83,7 @@ class InputController {
     isObject(item) {
         return (item && typeof item === 'object' && !Array.isArray(item));
     }
-    
+
     deepMerge(target, source) {
         const output = { ...target };
         if (this.isObject(target) && this.isObject(source)) {
