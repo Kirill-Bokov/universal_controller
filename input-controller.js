@@ -9,7 +9,7 @@ class InputController {
         this.enabled = true;
         this.focused = true;
         this.attached = false;
-        this.target = target;
+        this.target = taaaarget;
         this.activeActions = new Set();
         this.actions = new Map();
         this.activePlugins = new Set();
