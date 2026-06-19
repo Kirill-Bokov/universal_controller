@@ -1,18 +1,15 @@
 class KeyboardPlugin {
     constructor(api) {
         this.api = api
-        console.log(this.api, "при инициализации клавы")
         this.keyDown = this.keyDown.bind(this)
         this.keyUp = this.keyUp.bind(this)
         this.pressedKeys = new Set()
-        this.target = this.api.target
-
+        this.target = this.api.dispatch()
     }
 
     keyboardOn() {
         console.log("подключение клавиатуры")
-
-        if (this.api.attached) {
+        if (this.api.isAttached()) {
             this.target.dispatchEvent(new CustomEvent('keyboardon'))
             this.target.addEventListener('keydown', this.keyDown)
             this.target.addEventListener('keyup', this.keyUp)
@@ -32,8 +29,7 @@ class KeyboardPlugin {
     }
 
     keyCodeToActionName(keyCode) {
-        console.log(this.api.actions)
-        for (let value of this.api.actions) {
+        for (let value of this.api.getActions()) {
             for (let key in value[1].keys) {
                 if (value[1].keys[key] == keyCode && value[1].enabled == true) {
                     let actionName = value[0]
@@ -65,8 +61,8 @@ class KeyboardPlugin {
         }
         let actionName = this.keyCodeToActionName(event.keyCode)
         this.pressedKeys.add(event.keyCode)
-        if (actionName && !this.api.activeActions.has(actionName)) {
-            this.target.dispatchEvent(new CustomEvent('activateAction'), { detail: actionName })
+        if (actionName && !this.api.isActionActive(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('activateAction', { detail: actionName }))
         }
     }
 
@@ -78,10 +74,10 @@ class KeyboardPlugin {
 
         let actionName = this.keyCodeToActionName(event.keyCode)
         this.pressedKeys.delete(event.keyCode)
-        if (actionName && this.api.activeActions.has(actionName)) {
-            this.target.dispatchEvent(new CustomEvent('deactivateAction'), {
+        if (actionName && this.api.isActionActive(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('deactivateAction', {
                 detail: actionName
-            })
+            }))
         }
     }
 }

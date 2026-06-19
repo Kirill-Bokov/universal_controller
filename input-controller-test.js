@@ -21,11 +21,11 @@ function inputControllerTest() {
 
 
     const controller = new InputController(actionsToBind);
-    //let mouse =  new MousePlugin(controller.getApi());
-   // mouse.mouseOn()
     let keyboard = new KeyboardPlugin(controller.getApi());
     keyboard.keyboardOn()
-    
+    let mouse = new MousePlugin(controller.getApi());
+    mouse.mouseOn()
+
     window.controller = controller;
 
     const game = document.getElementById('game')
@@ -56,11 +56,11 @@ function inputControllerTest() {
     const bindJump = document.getElementById('bind-jump');
     bindJump.addEventListener('click', () => {
         controller.bindActions({
-        "jump": {
-            keys: [38],
-            enabled: true
-        },
-    })
+            "jump": {
+                keys: [38],
+                enabled: true
+            },
+        })
     });
 }
 inputControllerTest()

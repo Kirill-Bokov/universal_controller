@@ -1,17 +1,16 @@
 class MousePlugin {
-    constructor(controller) {
-        this.controller = controller
-        console.log(this.controller.activeActions, "при инициализации мыши")
+    constructor(api) {
+        this.api = api
         this.mouseDown = this.mouseDown.bind(this)
         this.mouseUp = this.mouseUp.bind(this)
         this.pressedKeys = new Set()
-        this.target = this.controller.target
+        this.target = this.api.dispatch()
     }
 
     mouseOn() {
         console.log("подключение мыши")
-        if (this.controller.attached) {
-            this.controller.pluginOn("mouse")
+        if (this.api.isAttached()) {
+            this.target.dispatchEvent(new CustomEvent('mouseon'))
             this.target.addEventListener('mousedown', this.mouseDown)
             this.target.addEventListener('mouseup', this.mouseUp)
         } else {
@@ -21,20 +20,19 @@ class MousePlugin {
 
     mouseOff() {
         console.log("отключение мыши")
+        this.target.dispatchEvent(new CustomEvent('mouseoff'))
         this.target.removeEventListener('mousedown', this.mouseDown)
         this.target.removeEventListener('mouseup', this.mouseUp)
         for (let key in this.pressedKeys) {
             this.mouseDown(key)
         }
         this.pressedKeys.clear()
-        this.controller.pluginOff("mouse")
     }
 
     keyCodeToActionName(keyCode) {
-        for (let value of this.controller.actions) {
+        for (let value of this.api.getActions()) {
             console.log(value[1])
             for (let key in value[1].mouseKeys) {
-                console.log(value[1].mouseKeys[key], "кий")
                 if (value[1].mouseKeys[key] == keyCode && value[1].enabled == true) {
                     let actionName = value[0]
                     return actionName
@@ -64,8 +62,8 @@ class MousePlugin {
         }
         let actionName = this.keyCodeToActionName(event.button)
         this.pressedKeys.add(event.button)
-        if (actionName && !this.controller.activeActions.has(actionName)) {
-            this.controller.activateAction(actionName)
+        if (actionName && !this.api.isActionActive(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('activateAction', { detail: actionName }))
         }
     }
 
@@ -77,8 +75,8 @@ class MousePlugin {
 
         let actionName = this.keyCodeToActionName(event.button)
         this.pressedKeys.delete(event.button)
-        if (actionName && this.controller.activeActions.has(actionName)) {
-            this.controller.deactivateAction(actionName)
+        if (actionName && this.api.isActionActive(actionName)) {
+            this.target.dispatchEvent(new CustomEvent('deactivateAction', { detail: actionName }))
         }
     }
 }
